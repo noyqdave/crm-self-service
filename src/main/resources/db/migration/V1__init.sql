@@ -1,0 +1,1 @@
+-- Placeholder migration for Flyway. No schema objects yet.
