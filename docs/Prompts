@@ -1,0 +1,33 @@
+I am using BDD/TDD to create a hexagonal architecture CRM self-service product one user story (and one acceptance criterion) at a time. Do not write any application code until I instruct you to write the code to pass one unit (or integration) test. I will first give you a user story and acceptance criteria: please ask clarifying questions to ensure you understand the needs, then we will start writing tests. For BDD, we will use REST Assured to test from the outside in. Here is the first user story: "As a customer who has relocated to a new office or work location, I want to update my business address, so that I receive physical correspondence and maintain accurate records for billing and compliance purposes." and the first acceptance criterion: "current business address is displayed including all components (street, city, state/province, postal code, country)"
+
+---
+
+## Follow-on Prompts (Synthesized)
+
+### Initial Instructions (forward progress)
+
+- **Clarifying answers**: One canonical address per customer; single string street; all fields mandatory and freeform; 200 and 404 acceptable; API path deferred; no auth for now.
+- Create feature file with scenarios first (before step defs).
+- Use specification by example: concrete address in Given/Then.
+- Keep Then step user-facing (no HTTP status or technical response details).
+- Use a single data table; avoid duplicate assertions.
+- Set up step-definition stubs.
+- Run the Cucumber scenario.
+- Derive unit-test ideas from inside out (domain → application → adapters); create a numbered checklist.
+- Add unit test for step 1 (Business address value object); write application code; repeat for step 5, step 7.
+- Mark passing tests in the checklist.
+- Implement step 10 (controller) and step 13 (repository) to support the happy path.
+- Implement step definitions and run the scenario end-to-end.
+- Run tests with full permissions when sandbox causes failures.
+- Remove redundant step def (single Then, no duplicate annotations).
+- Add explicit data table to Then so the scenario clearly shows the customer sees the same address that was stored.
+- Commit and push when everything passes.
+- Generate use case specifications and 4+1 architecture documentation; commit and push.
+
+### Corrections (fixing direction or approach)
+
+- **BDD first**: Undo the REST Assured test class; use a Gherkin feature file and scenarios before implementation.
+- **Specification by example**: Replace abstract "address component" checks with a concrete example address (e.g., 100 Main St, Springfield, Illinois, 62701, United States).
+- **User perspective**: Remove the explicit 200 status from the Then step; keep the scenario in business language.
+- **Single source of truth**: Use one data table in the scenario; remove duplicate checks.
+- **Explicit Then**: Add the data table back to Then so it is clear the customer sees the same address that was stored (avoids abstract "the customer sees their business address").
