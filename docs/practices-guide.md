@@ -546,16 +546,71 @@ public class PropertySourceDebugHook {
 
 ---
 
+## Architecture Documentation
+
+**Note on Project Context**: Architecture diagrams should clearly distinguish structural views (what exists) from behavioral views (what happens). Use the appropriate diagram type for each purpose.
+
+### 1. Structural vs Dynamic Diagrams
+
+#### ✅ **Correct Approach**
+- **Structural diagrams** describe system composition and organization—what components, packages, or deployment nodes exist and how they relate
+- Use the right diagram type for structure: class diagrams, component diagrams, deployment diagrams, or package diagrams
+- **Dynamic diagrams** (flowcharts, sequence diagrams, state diagrams) describe behavior—flow, interactions, or state transitions over time
+
+#### ❌ **Anti-Pattern**
+- Using flowcharts to represent structure (e.g., solution layout, dependency graph, deployment topology)
+- Flowcharts show flow and process; they are dynamic, not structural
+
+#### ✅ **Correct Pattern**
+| Purpose | Diagram Type | Example |
+|---------|--------------|---------|
+| Domain model | Class diagram | Entities, value objects, relationships |
+| Module/project structure | Component diagram, package diagram | Solution structure, project dependencies |
+| Deployment topology | Deployment diagram | Containers, nodes, runtime environment |
+| Request flows, scenarios | Sequence diagram | Message passing between participants |
+| Process steps | Flowchart, sequence diagram | Steps and decisions |
+
+### 2. Logical vs Physical Sequence Diagrams
+
+#### ✅ **Correct Approach**
+- **Physical sequence diagrams** show interactions between infrastructure and platform elements: Browser, Web server, API, Database, etc. They describe how requests flow through the system at runtime.
+- **Logical sequence diagrams** show interactions between domain entities and services: BasketService, Basket, Order, OrderItem, etc. They describe how domain concepts collaborate to fulfill use cases.
+- Document both levels for key flows: physical for request/runtime behavior, logical for domain behavior.
+
+#### ❌ **Anti-Pattern**
+- Documenting only physical interactions (Web → API → DB) while omitting domain entity interactions
+- Assuming that process-view sequence diagrams sufficiently describe the domain
+
+#### ✅ **Correct Pattern**
+- **Process view**: Sequence diagrams with participants like Browser, Web, PublicApi, SQL Server
+- **Logical view**: Sequence diagrams with participants like BasketService, Basket, BasketItem, OrderService, Order, OrderItem
+- For important flows (add to basket, checkout, basket transfer), include logical interaction diagrams showing domain entities
+
+---
+
 ## Use Case Specifications
 
 **Note on Project Context**: The practices below reflect the discipline required to derive clear, accurate documentation from working code.
 
-### 1. Preconditions vs Runtime Validation
+### 1. Use Case Structure
 
 #### ✅ **Correct Approach**
-- **Preconditions**: Only system operational requirements
-  - "System is operational and database is accessible"
-  - "Application server is running"
+- **Description** (required, at the beginning): A brief summary of what the use case does, including the business value or interest (e.g., accurate records for billing, compliance, correspondence)
+- **Primary Actor**: Who initiates the use case
+- **Preconditions**, **Basic Flow**, **Alternative Flows**, **Exception Flows**, **Business Rules**
+- Focus on **actors**; omit the Stakeholders and Interests section (redundant—include business interest in the Description instead)
+- No Notes section at the end
+
+#### ❌ **Anti-Pattern**
+- Starting with User Story, Stakeholders and Interests, or other non-use-case elements
+- Omitting the Description
+- Redundant preconditions (e.g., "Application server is running" when "System is operational" already implies it)
+
+### 2. Preconditions vs Runtime Validation
+
+#### ✅ **Correct Approach**
+- **Preconditions**: Only essential system operational requirements; avoid redundancy
+  - "System is operational and database is accessible" (implies application server, etc.)
 - **Runtime Validation**: Feature flags, input validation, business rules
   - Checked in basic flow steps
   - Trigger alternative flows when conditions fail
@@ -573,7 +628,7 @@ public class PropertySourceDebugHook {
   - System is operational and database is accessible  # CORRECT - system requirement
 ```
 
-### 2. Clean Basic Flows
+### 3. Clean Basic Flows
 
 #### ✅ **Correct Approach**
 - Describe only the happy path
@@ -590,7 +645,7 @@ public class PropertySourceDebugHook {
 2. **System validates feature flag**: The system checks if the "create-transaction" feature flag is enabled.
 ```
 
-### 3. Alternative Flow Triggers
+### 4. Alternative Flow Triggers
 
 #### ✅ **Correct Approach**
 - Alternative flows contain their own trigger descriptions
@@ -608,7 +663,7 @@ public class PropertySourceDebugHook {
   4. System returns HTTP 403 Forbidden with error message
 ```
 
-### 4. Exception Flows vs Alternative Flows
+### 5. Exception Flows vs Alternative Flows
 
 #### ✅ **Correct Approach**
 - **Alternative Flows**: Specific validation failures or business logic exceptions during execution
@@ -627,23 +682,63 @@ public class PropertySourceDebugHook {
 - **Database Connection Lost**: If database connection fails during transaction persistence
 ```
 
-### 5. Logical Separation of Concerns
+### 6. Logical Separation of Concerns
 
 #### ✅ **Correct Structure**
-- **Preconditions**: What must be true before use case starts
+- **Description**: What the use case does and why it matters (business value)
+- **Primary Actor**: Who initiates the use case
+- **Preconditions**: What must be true before use case starts (essential only; no redundancy)
 - **Basic Flow**: Clean, linear happy path
 - **Alternative Flows**: Specific failure scenarios with clear triggers
 - **Exception Flows**: Only execution exceptions
+- **Business Rules**: Domain rules and constraints
+
+### 7. Intent vs Implementation Details
+
+#### ✅ **Correct Approach**
+- Describe **intent** (what the actor wants), not UI mechanics (clicks, buttons, form fields)
+- Use plain English that a person using the system would understand—someone with no knowledge of its inner workings
+- Basic flow should reflect the **most common path**; rarer cases belong in alternative flows
+- Avoid implementation details: cookies, session IDs, database, HTTP, repositories, "redirects," "persists," technical field names
+
+#### ❌ **Anti-Pattern**
+```markdown
+2. Shopper clicks "Add to Basket" on the product
+3. System retrieves or creates a basket for the shopper (by buyer ID from cookie or username)
+6. System persists the basket
+7. System redirects shopper to the basket page
+```
+
+#### ✅ **Correct Pattern**
+```markdown
+2. Shopper requests to add the product to their basket
+3. System retrieves the shopper's basket
+6. System saves the basket
+7. System takes shopper to their basket
+```
+
+(If the shopper usually has a basket, "creates a new basket" belongs in an alternative flow.)
 
 ---
 
 ## Common Anti-Patterns to Avoid
+
+### Architecture Documentation
+1. **Using flowcharts for structure** → Use class, component, deployment, or package diagrams
+2. **Only physical sequence diagrams** → Add logical sequence diagrams for domain entity interactions on key flows
+3. **Confusing structural with dynamic** → Structural = composition; dynamic = behavior over time
 
 ### Use Case Specifications
 1. **Feature flags in preconditions** → Move to runtime validation
 2. **Conditional logic in basic flows** → Keep basic flows clean
 3. **System unavailable in exception flows** → This is a precondition failure
 4. **Missing step references in alternative flows** → Always specify which step triggers the alternative
+5. **UI details instead of intent** → Describe what the actor wants (e.g., "requests to add product to basket"), not how they do it (e.g., "clicks Add to Basket")
+6. **Implementation details** → Avoid cookies, session IDs, "persists," "redirects," technical field names; use plain English a shopper would understand
+7. **Rare path in basic flow** → Put the most common path in basic flow; "creates basket" when shopper usually has one belongs in an alternative flow
+8. **Stakeholders and Interests section** → Redundant; focus on actors; include business value in the Description
+9. **Notes section at end** → Omit
+10. **Redundant preconditions** → Consolidate (e.g., "application server running" is implied by "system operational")
 
 ### BDD Scenarios
 1. **Technical implementation details** → Focus on business intent
@@ -666,12 +761,22 @@ public class PropertySourceDebugHook {
 
 ## Quality Checklist
 
+### Architecture Documentation
+- [ ] Structural views use structural diagram types (class, component, deployment, package) (see [Structural vs Dynamic Diagrams](#1-structural-vs-dynamic-diagrams))
+- [ ] Dynamic views use sequence diagrams or flowcharts (see [Structural vs Dynamic Diagrams](#1-structural-vs-dynamic-diagrams))
+- [ ] Key flows have both physical (request/runtime) and logical (domain entity) sequence diagrams (see [Logical vs Physical Sequence Diagrams](#2-logical-vs-physical-sequence-diagrams))
+
 ### Use Case Specifications
-- [ ] Preconditions contain only system operational requirements (see [Preconditions vs Runtime Validation](#1-preconditions-vs-runtime-validation))
-- [ ] Basic flow is clean and linear without conditional logic (see [Clean Basic Flows](#2-clean-basic-flows))
-- [ ] Alternative flows have clear triggers with step references (see [Alternative Flow Triggers](#3-alternative-flow-triggers))
-- [ ] Exception flows contain only execution exceptions (see [Exception Flows vs Alternative Flows](#4-exception-flows-vs-alternative-flows))
+- [ ] Description at beginning; includes business value (see [Use Case Structure](#1-use-case-structure))
+- [ ] Primary Actor specified; no Stakeholders and Interests section (see [Use Case Structure](#1-use-case-structure))
+- [ ] No Notes section at end (see [Use Case Structure](#1-use-case-structure))
+- [ ] Preconditions contain only essential system operational requirements; no redundancy (see [Preconditions vs Runtime Validation](#2-preconditions-vs-runtime-validation))
+- [ ] Basic flow is clean and linear without conditional logic (see [Clean Basic Flows](#3-clean-basic-flows))
+- [ ] Alternative flows have clear triggers with step references (see [Alternative Flow Triggers](#4-alternative-flow-triggers))
+- [ ] Exception flows contain only execution exceptions (see [Exception Flows vs Alternative Flows](#5-exception-flows-vs-alternative-flows))
 - [ ] No redundant information with other documentation (see [DRY](#3-dry-dont-repeat-yourself))
+- [ ] Steps describe intent, not UI mechanics (see [Intent vs Implementation Details](#7-intent-vs-implementation-details))
+- [ ] Plain English for the actor; no implementation details (cookies, "persists," "redirects," etc.)
 
 ### BDD Scenarios
 - [ ] Written in problem space (see [Problem Space vs Solution Space](#1-problem-space-vs-solution-space))
@@ -696,5 +801,4 @@ public class PropertySourceDebugHook {
 
 ## References
 - Use case specifications: [Use Case Specifications](use-case-specifications.md)
-- BDD scenarios: `src/test/resources/com/example/app/cucumber/*.feature`
-- Architecture documentation: [Architecture Overview](../ARCHITECTURE.md) and [4+1 View](architecture-4plus1.md)
+- Architecture documentation: [4+1 Architecture Views](architecture-4plus1.md)

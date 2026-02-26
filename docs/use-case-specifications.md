@@ -1,63 +1,55 @@
 # Use Case Specifications
 
-This document contains use case specifications reverse-engineered from the implemented code and BDD scenarios. Use cases document what was built and normalize flows, terminology, and exception handling.
+This document contains use case specifications reverse-engineered from the implemented code and observed behavior. Use cases document what was built and normalize flows, terminology, and exception handling.
 
 ---
 
 ## UC-001: Get Current Business Address
 
-**User Story**: As a customer who has relocated to a new office or work location, I want to update my business address, so that I receive physical correspondence and maintain accurate records for billing and compliance purposes.
-
-**Scope**: This use case covers the first acceptance criterion: displaying the current business address including all components.
+**Description**: The customer requests to view their current business address. The system looks up and displays the address (street, city, state/province, postal code, country), or informs the customer when no address is on file. Accurate address records support billing, compliance, and correspondence.
 
 **Primary Actor**: Customer (self-service user)
-
-**Stakeholders and Interests**:
-- **Customer**: Wants to see their current business address to verify it or before updating it
-- **Business**: Needs accurate address records for billing, compliance, and correspondence
 
 ---
 
 ### Preconditions
 
 - System is operational and database is accessible
-- Application server is running
 
 ---
 
 ### Postconditions
 
-**Success**: The customer receives their current business address with all components (street, city, state/province, postal code, country).
+**Success**: The customer sees their current business address with all components (street, city, state/province, postal code, country).
 
-**Alternative Flow A1**: The customer is informed that no business address has been set.
+**Alternative Flow A1**: The customer is informed that no business address is on file.
 
 ---
 
 ### Basic Flow
 
-1. **Customer requests their current business address**: The customer initiates a request to view their business address.
+1. **Customer requests their current business address**: The customer asks to view their business address.
 
-2. **System loads the business address**: The system retrieves the canonical business address for the customer from persistent storage.
+2. **System looks up the customer's business address**: The system retrieves the business address for the customer.
 
-3. **System returns the address**: The system presents the business address to the customer, including street, city, state/province, postal code, and country.
+3. **System shows the address to the customer**: The system presents the business address, including street, city, state/province, postal code, and country.
 
 ---
 
 ### Alternative Flows
 
-#### A1: No Business Address Set
+#### A1: No Business Address On File
 
 - **Trigger**: In step 2, no business address exists for the customer
 - **Steps**:
   1. System determines that no business address has been stored for the customer
-  2. System returns a not-found response
-  3. Customer is informed that no business address is on file
+  2. System informs the customer that no business address is on file
 
 ---
 
 ### Exception Flows
 
-- **Database Connection Lost**: If the database connection fails while loading the business address, the system propagates the exception and the request fails with an error response.
+- **Database Connection Lost**: If the database connection fails while looking up the business address, the request fails and the customer receives an error.
 
 ---
 
@@ -66,10 +58,3 @@ This document contains use case specifications reverse-engineered from the imple
 - Each customer has at most one canonical business address
 - All address components (street, city, state/province, postal code, country) are mandatory when an address exists
 - Address fields are freeform (no format validation beyond presence)
-
----
-
-### Notes
-
-- BDD scenarios for this use case: `business_address.feature`
-- The "update" capability (changing the address) is part of the same user story but is not yet implemented
